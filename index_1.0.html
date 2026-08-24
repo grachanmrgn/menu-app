@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>献立提案サポーター</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    .selected {
+      border-color: #f97316 !important;
+      background-color: #fff7ed !important;
+      color: #ea580c !important;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12 font-sans antialiased">
+
+  <!-- ヘッダー -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 py-3 shadow-sm">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i data-lucide="utensils" class="w-6 h-6 text-orange-500"></i>
+        <h1 class="font-bold text-lg text-slate-800 tracking-tight">献立提案サポーター</h1>
+      </div>
+      <button id="btn-toggle-key" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+        <i data-lucide="key" class="w-3.5 h-3.5"></i>
+        <span>APIキー設定</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto p-4 space-y-5">
+
+    <!-- APIキー設定 -->
+    <div id="key-section" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+      <div class="flex items-center justify-between">
+        <label class="block text-xs font-semibold text-slate-600">Gemini APIキー (端末にのみ保存)</label>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] text-orange-600 hover:underline">キー取得はこちら &rarr;</a>
+      </div>
+      <div class="flex gap-2">
+        <input type="password" id="api-key-input" placeholder="AIzaSy..." class="flex-1 text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white font-mono">
+        <button id="btn-save-key" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors">
+          保存
+        </button>
+      </div>
+      <p id="key-status-msg" class="text-[11px] text-slate-400">※APIキーは外部サーバーへ送信されず、お使いのブラウザ（LocalStorage）にのみ安全に保存されます。</p>
+    </div>
+
+    <!-- 条件選択セクション -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+      
+      <!-- 1. 種類選択 -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">1. 提案の種類</label>
+        <div class="grid grid-cols-2 gap-2.5" id="group-type">
+          <button type="button" data-value="主菜 (おかず)" class="type-btn selected border-2 border-slate-200 py-2.5 px-3 rounded-xl text-sm text-center transition-all bg-white font-medium hover:border-slate-300">
+            🍖 主菜 (おかず)
+          </button>
+          <button type="button" data-value="主食 (ご飯・麺類・丼・一品もの)" class="type-btn border-2 border-slate-200 py-2.5 px-3 rounded-xl text-sm text-center transition-all bg-white font-medium hover:border-slate-300">
+            🍚 主食 (丼・麺・一品)
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. ジャンル選択 -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">2. 料理ジャンル</label>
+        <div class="grid grid-cols-3 gap-2" id="group-cuisine">
+          <button type="button" data-value="和風" class="cuisine-btn selected border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">和風</button>
+          <button type="button" data-value="洋風" class="cuisine-btn border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">洋風</button>
+          <button type="button" data-value="中華" class="cuisine-btn border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">中華</button>
+          <button type="button" data-value="韓国・エスニック" class="cuisine-btn border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">韓国・エスニック</button>
+          <button type="button" data-value="おまかせ（何でも）" class="cuisine-btn col-span-2 border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">🎲 おまかせ</button>
+        </div>
+      </div>
+
+      <!-- 3. 気分・テイスト選択 -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">3. 今日の気分・テイスト</label>
+        <div class="grid grid-cols-3 gap-2" id="group-taste">
+          <button type="button" data-value="ガッツリ・濃厚" class="taste-btn selected border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">💪 ガッツリ</button>
+          <button type="button" data-value="あっさり・ヘルシー" class="taste-btn border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">🥗 あっさり</button>
+          <button type="button" data-value="ピリ辛・スパイシー" class="taste-btn border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">🌶️ ピリ辛</button>
+          <button type="button" data-value="時短・手軽 (15分以内)" class="taste-btn border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">⏱️ 時短・簡単</button>
+          <button type="button" data-value="節約・定番食材" class="taste-btn border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">💰 節約・定番</button>
+          <button type="button" data-value="おまかせ" class="taste-btn border-2 border-slate-200 py-2 rounded-xl text-xs text-center transition-all bg-white font-medium hover:border-slate-300">🎲 おまかせ</button>
+        </div>
+      </div>
+
+      <!-- 送信ボタン -->
+      <button id="btn-generate" class="w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition duration-150 flex items-center justify-center space-x-2 text-base">
+        <i data-lucide="sparkles" class="w-5 h-5"></i>
+        <span>献立を3品提案してもらう</span>
+      </button>
+    </div>
+
+    <!-- ローディング表示 -->
+    <div id="loading-spinner" class="hidden py-12 text-center space-y-3">
+      <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-orange-500 border-t-transparent"></div>
+      <p class="text-sm font-medium text-slate-600 animate-pulse">Geminiが美味しい3品を考案中...</p>
+    </div>
+
+    <!-- エラーメッセージ -->
+    <div id="error-card" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-4 text-rose-700 text-sm space-y-2">
+      <div class="flex items-center gap-2 font-bold text-rose-800">
+        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+        <span>提案を取得できませんでした</span>
+      </div>
+      <p id="error-message-text" class="text-xs text-rose-600"></p>
+    </div>
+
+    <!-- 提案結果表示エリア -->
+    <div id="results-container" class="hidden space-y-4">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
+          <i data-lucide="sparkles" class="w-4 h-4 text-orange-500"></i>
+          提案された3つの献立
+        </h2>
+        <button id="btn-retry" class="text-xs bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1 transition">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span>別の3品を提案</span>
+        </button>
+      </div>
+
+      <div id="menu-cards" class="space-y-4"></div>
+    </div>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    let selectedType = '主菜 (おかず)';
+    let selectedCuisine = '和風';
+    let selectedTaste = 'ガッツリ・濃厚';
+
+    const apiKeyInput = document.getElementById('api-key-input');
+    const btnSaveKey = document.getElementById('btn-save-key');
+    const keySection = document.getElementById('key-section');
+    const btnToggleKey = document.getElementById('btn-toggle-key');
+    const keyStatusMsg = document.getElementById('key-status-msg');
+    const btnGenerate = document.getElementById('btn-generate');
+    const btnRetry = document.getElementById('btn-retry');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const resultsContainer = document.getElementById('results-container');
+    const menuCards = document.getElementById('menu-cards');
+    const errorCard = document.getElementById('error-card');
+    const errorMessageText = document.getElementById('error-message-text');
+
+    const savedKey = localStorage.getItem('gemini_api_key') || '';
+    if (savedKey) {
+      apiKeyInput.value = savedKey;
+      keyStatusMsg.textContent = '✅ APIキーが保存されています。';
+      keyStatusMsg.className = 'text-[11px] text-emerald-600 font-medium';
+      keySection.classList.add('hidden');
+    }
+
+    function setupGroupToggle(groupId, className, onSelect) {
+      const group = document.getElementById(groupId);
+      const buttons = group.querySelectorAll(`.${className}`);
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          onSelect(btn.dataset.value);
+        });
+      });
+    }
+
+    setupGroupToggle('group-type', 'type-btn', val => selectedType = val);
+    setupGroupToggle('group-cuisine', 'cuisine-btn', val => selectedCuisine = val);
+    setupGroupToggle('group-taste', 'taste-btn', val => selectedTaste = val);
+
+    btnToggleKey.addEventListener('click', () => {
+      keySection.classList.toggle('hidden');
+    });
+
+    btnSaveKey.addEventListener('click', () => {
+      const key = apiKeyInput.value.trim();
+      if (!key) {
+        alert('APIキーを入力してください');
+        return;
+      }
+      localStorage.setItem('gemini_api_key', key);
+      keyStatusMsg.textContent = '✅ APIキーを保存しました！';
+      keyStatusMsg.className = 'text-[11px] text-emerald-600 font-medium';
+      setTimeout(() => keySection.classList.add('hidden'), 1000);
+    });
+
+    async function fetchMenuSuggestions() {
+      const apiKey = localStorage.getItem('gemini_api_key') || apiKeyInput.value.trim();
+      if (!apiKey) {
+        keySection.classList.remove('hidden');
+        apiKeyInput.focus();
+        showError('先にGemini APIキーを入力して保存してください。');
+        return;
+      }
+
+      hideError();
+      resultsContainer.classList.add('hidden');
+      loadingSpinner.classList.remove('hidden');
+      btnGenerate.disabled = true;
+      if (btnRetry) btnRetry.disabled = true;
+
+      const prompt = `あなたはプロの料理家兼栄養士です。以下の条件に基づいて、今日の献立として最適なメニューを3品提案してください。
+
+【条件】
+・区分: ${selectedType}
+・ジャンル: ${selectedCuisine}
+・テイスト/特徴: ${selectedTaste}
+
+【出力要件】
+・3品それぞれバリエーション（主材料や味付け）を変えて提案してください。
+・必ず以下のJSONスキーマに従った有効なJSON形式（Markdownのコードブロックなし）のみを出力してください。
+
+[
+  {
+    "dish_name": "料理名",
+    "cooking_time": "所要時間 (例: 15分)",
+    "description": "料理の魅力やアピールポイント（1行で簡潔に）",
+    "ingredients": [
+      "材料1 分量",
+      "材料2 分量"
+    ],
+    "instructions": [
+      "ステップ1の手順",
+      "ステップ2の手順"
+    ]
+  }
+]`;
+
+      try {
+        // モデル名を gemini-3.6-flash に設定
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+        
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              responseMimeType: "application/json",
+              temperature: 0.7
+            }
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || `通信エラーが発生しました (ステータス: ${response.status})`);
+        }
+
+        const data = await response.json();
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (!rawText) {
+          throw new Error('AIからの応答が空でした。再度お試しください。');
+        }
+
+        const menuList = JSON.parse(rawText);
+        renderMenuCards(menuList);
+
+      } catch (err) {
+        console.error(err);
+        showError(err.message || '献立の取得中に予期せぬエラーが発生しました。');
+      } finally {
+        loadingSpinner.classList.add('hidden');
+        btnGenerate.disabled = false;
+        if (btnRetry) btnRetry.disabled = false;
+      }
+    }
+
+    function renderMenuCards(list) {
+      menuCards.innerHTML = '';
+
+      list.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3';
+
+        const ingredientsHtml = item.ingredients.map(ing => `<li class="text-xs text-slate-600">${ing}</li>`).join('');
+        const instructionsHtml = item.instructions.map((step, i) => `
+          <div class="flex gap-2 text-xs text-slate-700 leading-relaxed">
+            <span class="font-bold text-orange-600 shrink-0">${i + 1}.</span>
+            <span>${step}</span>
+          </div>
+        `).join('');
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">候補 ${index + 1}</span>
+                <span class="text-xs text-slate-500 flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i>${item.cooking_time || '約20分'}</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-800">${item.dish_name}</h3>
+            </div>
+          </div>
+
+          ${item.description ? `<p class="text-xs text-slate-500 bg-slate-50 p-2 rounded-lg">${item.description}</p>` : ''}
+
+          <div class="space-y-1.5">
+            <h4 class="text-xs font-bold text-slate-600 flex items-center gap-1">
+              <i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-slate-400"></i> 材料
+            </h4>
+            <ul class="grid grid-cols-2 gap-x-2 gap-y-1 bg-amber-50/50 p-2.5 rounded-xl border border-amber-100">
+              ${ingredientsHtml}
+            </ul>
+          </div>
+
+          <div class="space-y-1.5">
+            <h4 class="text-xs font-bold text-slate-600 flex items-center gap-1">
+              <i data-lucide="list-ordered" class="w-3.5 h-3.5 text-slate-400"></i> 作り方
+            </h4>
+            <div class="space-y-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+              ${instructionsHtml}
+            </div>
+          </div>
+        `;
+        menuCards.appendChild(card);
+      });
+
+      lucide.createIcons();
+      resultsContainer.classList.remove('hidden');
+      resultsContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showError(msg) {
+      errorMessageText.textContent = msg;
+      errorCard.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorCard.classList.add('hidden');
+    }
+
+    btnGenerate.addEventListener('click', fetchMenuSuggestions);
+    btnRetry.addEventListener('click', fetchMenuSuggestions);
+  </script>
+</body>
+</html>
